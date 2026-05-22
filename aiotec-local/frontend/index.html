@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aioTec — Iniciar sesión</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body { background:var(--bg); min-height:100vh; display:flex; align-items:center; justify-content:center }
+  .auth-wrap {
+    display:grid; grid-template-columns:1fr 1fr;
+    width:900px; max-width:96vw; min-height:540px;
+    background:var(--surface); border-radius:var(--radius-xl);
+    box-shadow:var(--shadow-lg); overflow:hidden;
+  }
+  .auth-left {
+    background:var(--sidebar-bg); padding:48px 40px;
+    display:flex; flex-direction:column; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  .auth-left::before {
+    content:''; position:absolute; top:-60px; right:-60px;
+    width:220px; height:220px; border-radius:50%;
+    background:rgba(0,102,255,.25);
+  }
+  .auth-left::after {
+    content:''; position:absolute; bottom:-40px; left:-40px;
+    width:160px; height:160px; border-radius:50%;
+    background:rgba(0,229,160,.12);
+  }
+  .auth-left .brand { position:relative; z-index:1 }
+  .brand-badge {
+    display:inline-flex; align-items:center; gap:10px;
+    margin-bottom:32px;
+  }
+  .brand-icon {
+    width:48px; height:48px; background:var(--brand);
+    border-radius:var(--radius-md); display:flex; align-items:center;
+    justify-content:center; font-size:1.4rem;
+  }
+  .brand-name { font-family:var(--font-head); font-size:1.3rem; font-weight:800; color:#fff }
+  .brand-sub  { font-size:.75rem; color:rgba(255,255,255,.5) }
+  .auth-left h2 { font-family:var(--font-head); font-size:1.7rem; color:#fff; margin-bottom:12px; position:relative; z-index:1 }
+  .auth-left p  { color:rgba(255,255,255,.55); font-size:.9rem; position:relative; z-index:1 }
+  .feature-list { list-style:none; margin-top:32px; display:flex; flex-direction:column; gap:12px; position:relative; z-index:1 }
+  .feature-list li { display:flex; align-items:center; gap:10px; color:rgba(255,255,255,.7); font-size:.88rem }
+  .feature-list li::before { content:'✓'; color:var(--accent); font-weight:700; font-size:1rem }
+
+  .auth-right { padding:48px 44px; display:flex; flex-direction:column; justify-content:center }
+  .auth-right h3 { font-family:var(--font-head); font-size:1.5rem; margin-bottom:6px }
+  .auth-right .sub { color:var(--text-3); font-size:.9rem; margin-bottom:32px }
+
+  .pass-wrap { position:relative }
+  .pass-toggle {
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; color:var(--text-3);
+    font-size:.95rem; padding:4px;
+  }
+  .divider { text-align:center; color:var(--text-3); font-size:.82rem; margin:20px 0; position:relative }
+  .divider::before,.divider::after {
+    content:''; position:absolute; top:50%; width:40%; height:1px; background:var(--border)
+  }
+  .divider::before { left:0 } .divider::after { right:0 }
+
+  .auth-links { display:flex; justify-content:space-between; font-size:.84rem; margin-top:4px }
+  .spinner { width:18px; height:18px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; display:none }
+  @keyframes spin { to { transform:rotate(360deg) } }
+
+  @media(max-width:680px) {
+    .auth-wrap { grid-template-columns:1fr }
+    .auth-left  { display:none }
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-wrap">
+  <!-- Izquierda: branding -->
+  <div class="auth-left">
+    <div class="brand">
+      <div class="brand-badge" style="background:none;padding:0;margin-bottom:28px">
+        <img src="assets/banner.png" alt="aioTec" style="width:100%;max-width:360px;object-fit:contain;border-radius:10px">
+      </div>
+      <h2>Control total de tu negocio</h2>
+      <p>Gestiona ventas, inventario y clientes desde un solo lugar.</p>
+      <ul class="feature-list">
+        <li>Inventario con alertas de stock</li>
+        <li>Facturación y comprobantes</li>
+        <li>Reportes y estadísticas en tiempo real</li>
+        <li>Control de caja y pagos</li>
+        <li>Gestión de clientes y proveedores</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Derecha: formulario -->
+  <div class="auth-right">
+    <h3>Bienvenido de vuelta</h3>
+    <p class="sub">Ingresa tus credenciales para continuar</p>
+
+    <div id="alert-msg" class="alert alert-danger hidden" role="alert"></div>
+
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" class="form-control" placeholder="tu@correo.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <div class="pass-wrap">
+          <input type="password" id="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+          <button type="button" class="pass-toggle" id="toggle-pass">👁</button>
+        </div>
+      </div>
+
+      <div class="auth-links">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.84rem;cursor:pointer">
+          <input type="checkbox" id="remember"> Recordarme
+        </label>
+        <a href="pages/forgot-password.html">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full mt-16" id="btn-login">
+        <span id="btn-text">Iniciar sesión</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+    </form>
+
+    <div class="divider">o</div>
+    <p style="text-align:center;font-size:.88rem">
+      ¿No tienes cuenta? <a href="pages/register.html"><strong>Crear cuenta</strong></a>
+    </p>
+  </div>
+</div>
+
+<script>
+const API = `${window.location.origin}/api`;
+
+document.getElementById('toggle-pass').addEventListener('click', () => {
+  const p = document.getElementById('password');
+  p.type = p.type === 'password' ? 'text' : 'password';
+});
+
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const alert    = document.getElementById('alert-msg');
+  const btnText  = document.getElementById('btn-text');
+  const spinner  = document.getElementById('spinner');
+
+  alert.classList.add('hidden');
+  btnText.textContent = 'Ingresando...';
+  spinner.style.display = 'block';
+
+  try {
+    const res  = await fetch(`${API}/auth/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error al ingresar');
+    localStorage.setItem('ts_token', data.token);
+    localStorage.setItem('ts_user',  JSON.stringify(data.user));
+    window.location.href = 'pages/dashboard.html';
+  } catch (err) {
+    alert.textContent = err.message;
+    alert.classList.remove('hidden');
+  } finally {
+    btnText.textContent = 'Iniciar sesión';
+    spinner.style.display = 'none';
+  }
+});
+
+// Si ya tiene token válido, redirigir
+if (localStorage.getItem('ts_token')) window.location.href = 'pages/dashboard.html';
+</script>
+</body>
+</html>
